@@ -1,9 +1,9 @@
-__author__ = "João Capela"
-__credits__ = ["João Capela", "João Correia, Fernando Cruz", "Vítor Pereira"]
+__author__ = "Sofia Ferreira"
+__credits__ = ["Sofia Ferreira"]
 __license__ = "Apache License 2.0"
 __version__ = "0.0.1"
-__maintainer__ = "João Capela"
-__email__ = "joao.capela@ceb.uminho.pt"
+__maintainer__ = "Sofia Ferreira"
+__email__ = "sofiaferreira200@gmail.com"
 
 # -----------------------------------------------------------------------------------
 # This package is heavily inspired and adapted from

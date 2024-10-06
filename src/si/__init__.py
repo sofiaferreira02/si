@@ -1,5 +1,5 @@
 __author__ = "Sofia Ferreira"
-__credits__ = ["Sofia Ferreira"]
+__credits__ = ["Fernando Cruz", "Vítor Pereira", "João Correia"]
 __license__ = "Apache License 2.0"
 __version__ = "0.0.1"
 __maintainer__ = "Sofia Ferreira"

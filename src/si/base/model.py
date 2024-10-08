@@ -1,6 +1,8 @@
 from abc import ABCMeta, ABC, abstractmethod
 
 from si.base.estimator import Estimator
+from si.data.dataset import Dataset
+from numpy import np
 
 
 class Model(Estimator, ABC):
@@ -68,3 +70,42 @@ class Model(Estimator, ABC):
         """
         self.fit(dataset)
         return self.predict(dataset)
+    
+    @abstractmethod
+    def _score(self, dataset:Dataset, predictions: np.ndarray) -> float:
+        """
+        Compute the score of the model on the dataset.
+        Abstract method that needs to be implemented by all subclasses.
+
+        Parameters
+        ----------
+        dataset: Dataset
+            The dataset to compute the score on.
+
+        Returns
+        -------
+        score: float
+            The computed score of the model.
+        """
+
+    def score(self, dataset:Dataset) -> float:
+        """
+        Compute the score of the model on the dataset.
+        The model needs to be fitted before calling this method.
+
+        Parameters
+        ----------
+        dataset: Dataset
+            The dataset to compute the score on.
+
+        Returns
+        -------
+        score: float
+            The computed score of the model.
+        """
+        if self.is_fitted():
+
+            predictions =self.predict(dataset=dataset)
+            self._score(dataset, predictions=predictions)
+        else: 
+            raise ValueError('Your model is not fitted, please call method.fit()')

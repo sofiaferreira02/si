@@ -85,7 +85,7 @@ class PCA:
 
         return explained_variance
 
-    def fit(self, dataset: Dataset) -> "PCA":
+    def _fit(self, dataset: Dataset) -> "PCA":
         """
         Método que recebe o dataset, faz fit dos dados e guarda os valores da média, os componentes principais e a
         variância explicada de cada observação,
@@ -99,7 +99,7 @@ class PCA:
 
         return self
 
-    def transform(self, dataset: Dataset) -> np.ndarray:
+    def _transform(self, dataset: Dataset) -> np.ndarray:
         """
         Método que transforma os dados ao calcular o Singular Value Decomposition (SVD)
 

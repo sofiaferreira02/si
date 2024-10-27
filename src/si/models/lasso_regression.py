@@ -51,7 +51,7 @@ class LassoRegression:
         self.theta = np.zeros(p)
         self.theta_zero = 0
 
-        # Algoritmo de descida coordenada
+    
         for _ in range(max_iter):
             theta_old = self.theta.copy()
             

@@ -4,7 +4,6 @@ import os
 from si.io.csv_file import read_csv
 from si.models.knn_regressor import KNNRegressor
 from si.model_selection.split import train_test_split
-from si.metrics.rmse import rmse
 from datasets import DATASETS_PATH
 
 class TestKNNRegressor(TestCase):
@@ -16,7 +15,7 @@ class TestKNNRegressor(TestCase):
     def test_fit(self):
         # Testa o método fit do KNNRegressor
         knn = KNNRegressor(k=3)
-        knn.fit(self.dataset)
+        knn._fit(self.dataset)
 
         # Verifica se os atributos do dataset foram corretamente armazenados
         self.assertTrue(np.all(self.dataset.features == knn.dataset.features))
@@ -25,8 +24,8 @@ class TestKNNRegressor(TestCase):
     def test_predict(self):
         knn = KNNRegressor(k=3)
         train_dataset, test_dataset = train_test_split(self.dataset, test_size=0.2)
-        knn.fit(train_dataset)
-        predictions = knn.predict(test_dataset)
+        knn._fit(train_dataset)
+        predictions = knn._predict(test_dataset)
 
         self.assertEqual(predictions.shape[0], test_dataset.y.shape[0])
 
@@ -38,6 +37,6 @@ class TestKNNRegressor(TestCase):
         # Testa o método score do KNNRegressor
         knn = KNNRegressor(k=3)
         train_dataset, test_dataset = train_test_split(self.dataset, test_size=0.2)
-        knn.fit(train_dataset)
-        score = knn.score(test_dataset)
+        knn._fit(train_dataset)
+        score = knn._score(test_dataset)
         self.assertGreaterEqual(score, 0)

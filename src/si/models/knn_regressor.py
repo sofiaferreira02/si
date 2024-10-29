@@ -38,7 +38,7 @@ class KNNRegressor:
         # Atributos
         self.dataset = None
 
-    def fit(self, dataset: Dataset) -> 'KNNRegressor':
+    def _fit(self, dataset: Dataset) -> 'KNNRegressor':
         """
         Método para fazer o fit do modelo de acordo com o input dataset.
 
@@ -71,7 +71,7 @@ class KNNRegressor:
 
         return knn_labels_mean
 
-    def predict(self, dataset: Dataset) -> np.ndarray:
+    def _predict(self, dataset: Dataset) -> np.ndarray:
         """
         Método para prever as médias das labels de um dado dataset.
 
@@ -81,7 +81,7 @@ class KNNRegressor:
         """
         return np.apply_along_axis(self._get_closet_label_mean, axis=1, arr=dataset.X)  # axis=1 por ser nas linhas
 
-    def score(self, dataset: Dataset) -> float:
+    def _score(self, dataset: Dataset) -> float:
         """
         Método que calcula o score do modelo - o erro entre os valores estimados e reais, usando a fórmula RMSE.
 
@@ -89,7 +89,7 @@ class KNNRegressor:
 
         :return: Valor RMSE do modelo.
         """
-        predictions = self.predict(dataset)
+        predictions = self._predict(dataset)
 
         return rmse(dataset.y, predictions)
 
@@ -107,8 +107,8 @@ if __name__ == '__main__':
     knn = KNNRegressor(k=3, distance=euclidean_distance)
 
     # fit the model to the train dataset
-    knn.fit(dataset_train)
+    knn._fit(dataset_train)
 
     # evaluate the model on the test dataset
-    score = knn.score(dataset_test)
+    score = knn._score(dataset_test)
     print(f'The RMSE value of the model is: {score}')

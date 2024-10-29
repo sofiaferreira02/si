@@ -1,5 +1,5 @@
 import numpy as np
-from cmath import sqrt
+
 
 def rmse(y_true, y_pred):
     """
@@ -16,6 +16,6 @@ def rmse(y_true, y_pred):
     y_true = np.array(y_true)
     y_pred = np.array(y_pred)
 
-    rmse_value = sqrt(np.sum((y_true - y_pred) ** 2) / len(y_true))
+    rmse_value = np.sqrt(np.mean((y_true - y_pred) ** 2))
 
     return rmse_value

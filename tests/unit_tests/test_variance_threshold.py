@@ -1,8 +1,6 @@
 import os
 from unittest import TestCase
-
 from datasets import DATASETS_PATH
-
 from si.io.csv_file import read_csv
 from si.feature_selection.variance_threshold import VarianceThreshold
 

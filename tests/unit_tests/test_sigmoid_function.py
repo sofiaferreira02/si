@@ -4,7 +4,6 @@ from datasets import DATASETS_PATH
 import numpy as np
 
 import os
-from si.feature_selection.select_k_best import SelectKBest
 from si.io.csv_file import read_csv
 
 from si.statistics.sigmoid_function import sigmoid_function

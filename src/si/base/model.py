@@ -2,7 +2,7 @@ from abc import ABCMeta, ABC, abstractmethod
 
 from si.base.estimator import Estimator
 from si.data.dataset import Dataset
-from numpy import np
+import numpy as np
 
 
 class Model(Estimator, ABC):

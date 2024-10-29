@@ -1,5 +1,6 @@
 import numpy as np
 from si.metrics.mse import mse
+from si.data.dataset import Dataset  # Importar a classe Dataset
 
 class LassoRegression:
     """
@@ -7,7 +8,6 @@ class LassoRegression:
     The Lasso regressor is a linear model that performs both feature selection and regularization 
     to enhance the prediction accuracy and interpretability of the model.
     
-
     Parameters
     ----------
     l1_penalty: float
@@ -38,8 +38,8 @@ class LassoRegression:
         self.mean = None
         self.std = None
 
-
-    def _fit(self, X, y, max_iter=1000, tolerance=1e-4):
+    def _fit(self, dataset: Dataset, max_iter=1000, tolerance=1e-4):
+        X, y = dataset.X, dataset.y
         n, p = X.shape
         
         if self.scale:
@@ -51,7 +51,6 @@ class LassoRegression:
         self.theta = np.zeros(p)
         self.theta_zero = 0
 
-    
         for _ in range(max_iter):
             theta_old = self.theta.copy()
             
@@ -75,7 +74,8 @@ class LassoRegression:
         else:
             return 0
 
-    def _predict(self, X):
+    def _predict(self, dataset: Dataset):
+        X = dataset.X
         # Escalar os dados usando média e desvio padrão do fit
         if self.scale:
             X = (X - self.mean) / self.std
@@ -83,7 +83,6 @@ class LassoRegression:
         # Prever os valores de y
         return np.dot(X, self.theta) + self.theta_zero
 
-    def _score(self, X, y):
-        y_pred = self._predict(X)
-
-        return mse(y, y_pred)
+    def _score(self, dataset: Dataset):
+        y_pred = self._predict(dataset)
+        return mse(dataset.y, y_pred)

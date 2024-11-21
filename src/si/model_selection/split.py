@@ -39,3 +39,64 @@ def train_test_split(dataset: Dataset, test_size: float = 0.2, random_state: int
     train = Dataset(dataset.X[train_idxs], dataset.y[train_idxs], features=dataset.features, label=dataset.label)
     test = Dataset(dataset.X[test_idxs], dataset.y[test_idxs], features=dataset.features, label=dataset.label)
     return train, test
+
+def stratified_train_test_split(dataset: Dataset, test_size: float = 0.2, random_state: int = 42) -> Tuple[Dataset, Dataset]:
+    """
+    Splits the dataset into training and testing sets while preserving the class distribution in each subset.
+
+    Parameters
+    ----------
+    dataset: Dataset
+        - Dataset object to split
+    test_size: float
+        - Size of the test set. By default, 20%
+    random_state: int
+        - Random seed for reproducibility
+    
+    Returns
+    -------
+    Tuple[Dataset, Dataset]
+        - A tuple where the first element is the training dataset and the second element is the testing dataset
+
+    Raises
+    -------
+    ValueError
+        - If test_size is not a float between 0 and 1
+    """
+    if not (0 < test_size < 1):
+        raise ValueError("O parâmetro test_size deve ser um valor entre 0 e 1.")
+    
+    # Configurar a semente para a aleatoriedade
+    rng = np.random.default_rng(random_state)
+    
+    # Identificar as classes únicas e seus respectivos números de amostras
+    unique_classes, class_counts = np.unique(dataset.y, return_counts=True)
+    
+    # Armazenar os índices selecionados para treino e teste
+    train_indices = []
+    test_indices = []
+    
+    # Estratificar com base nas classes
+    for cls, count in zip(unique_classes, class_counts):
+        class_indices = np.where(dataset.y == cls)[0]
+        rng.shuffle(class_indices)
+        
+        test_count = int(count * test_size)
+        test_indices.extend(class_indices[:test_count])
+        train_indices.extend(class_indices[test_count:])
+    
+    # Criar os conjuntos de treino e teste
+    train_data = Dataset(
+        X=dataset.X[train_indices], 
+        y=dataset.y[train_indices], 
+        features=dataset.features, 
+        label=dataset.label
+    )
+    test_data = Dataset(
+        X=dataset.X[test_indices], 
+        y=dataset.y[test_indices], 
+        features=dataset.features, 
+        label=dataset.label
+    )
+    
+    return train_data, test_data

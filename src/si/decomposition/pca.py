@@ -1,138 +1,87 @@
 import numpy as np
-
+from si.base.transformer import Transformer
 from si.data.dataset import Dataset
 
 
-class PCA:
-    """
-    PCA clustering usando a técnica de álgebra linear SVD (Singular Value Decomposition).
-    Transforma variáveis, possivelmente correlacionadas, num nº menor de variáveis que sejam capazes de representar os
-    dados.
-    Objetivo: Reduzir o nº de dimensões de um conjunto de dados para facilitar a visualização, análise e interpretação.
-
-    Parâmetros
-    ----------
-    n_components: int
-        Número de componentes.
-
-    Atributos
-    ----------
-    mean:
-        Média das amostras
-    components:
-        Componentes principais aka matriz unitária dos eigenvectors
-    explained_variance:
-        Variância explicada aka matriz diagonal dos eigenvalues
-    """
-
-    def __init__(self, n_components: int):
+class PCA(Transformer):
+    def __init__(self, n_components: int, **kwargs):
         """
-        Construtor do PCA, usando a técnica de álgebra linear SVD (Singular Value Decomposition).
+        Principal Component Analysis (PCA)
 
-        :param n_components: Número de componentes a considerar para a análise.
+        Parameters
+        ----------
+        n_components : int
+            Number of principal components to retain.
         """
-        # Parâmetros:
+        super().__init__(**kwargs)
         self.n_components = n_components
-
-        # Atributos:
+        self.fitted = False
         self.mean = None
         self.components = None
         self.explained_variance = None
 
-    def _get_centered_data(self, dataset: Dataset) -> np.ndarray:
-        """
-        Método para centrar os dados.
-
-        :param dataset: Dataset.
-        :return: ndarray com os dados centrados.
-        """
-        # Calculate centered data
-        self.mean = np.mean(dataset.X, axis=0) # axis=0 - coluna
-        self.centered_data = dataset.X - dataset.X.mean(axis=0, keepdims=True)
-        return self.centered_data
-
-    def _get_components(self, dataset: Dataset) -> np.ndarray:
-        """
-        Método que calcula os componentes do dataset.
-
-        :param dataset: Dataset.
-
-        :return: ndarray com os componentes.
-        """
-        # Get centered data
-        self.centered_data = self._get_centered_data(dataset)
-
-        # Calculate SVD
-        self.u, self.s, self.vt = np.linalg.svd(self.centered_data, full_matrices=False)
-
-        # Componentes principais
-        self.components = self.vt[:self.n_components] # colunas com os primeiros n_components
-
-        return self.components
-
-    def _get_explained_variance(self, dataset: Dataset) -> np.ndarray:
-        """
-        Método que calcula a explained variance.
-
-        :param dataset: Dataset.
-
-        :return: ndarray (vetor) com a explained variance.
-        """
-        # Calculate explained variance (ev)
-        len_dataset = len(dataset.X)
-        ev = (self.s ** 2) / (len_dataset - 1)
-        explained_variance = ev[:self.n_components]
-
-        return explained_variance
-
     def _fit(self, dataset: Dataset) -> "PCA":
         """
-        Método que recebe o dataset, faz fit dos dados e guarda os valores da média, os componentes principais e a
-        variância explicada de cada observação,
+        Fit the PCA model to the dataset.
 
-        :param dataset: Dataset, input dataset
+        Parameters
+        ----------
+        dataset : Dataset
+            The dataset to fit the PCA model to.
 
-        :return: self
+        Returns
+        -------
+        PCA
+            Fitted PCA instance.
+
+        Raises
+        ------
+        ValueError
+            If the number of components is invalid.
         """
-        self.components = self._get_components(dataset)
-        self.explained_variance = self._get_explained_variance(dataset)
+        # Validate the number of components
+        if not 0 < self.n_components <= dataset.shape()[1]:
+            raise ValueError("n_components must be a positive integer no greater than the number of features.")
 
+        # Center the dataset
+        self.mean = np.mean(dataset.X, axis=0)
+        centered_data = dataset.X - self.mean
+
+        # Calculate covariance matrix and perform eigen decomposition
+        cov_matrix = np.cov(centered_data, rowvar=False)
+        eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)
+
+        # Select the top n_components based on eigenvalues
+        sorted_indices = np.argsort(eigenvalues)[::-1][:self.n_components]
+        self.components = eigenvectors[:, sorted_indices].T
+        self.explained_variance = eigenvalues[sorted_indices] / np.sum(eigenvalues)
+
+        self.fitted = True
         return self
 
-    def _transform(self, dataset: Dataset) -> np.ndarray:
+    def _transform(self, dataset: Dataset) -> Dataset:
         """
-        Método que transforma os dados ao calcular o Singular Value Decomposition (SVD)
+        Transforma o dataset usando os componentes principais ajustados.
 
-        :param dataset: Dataset, input dataset
+        Parameters
+        ----------
+        dataset : Dataset
+            O dataset a ser transformado.
 
-        :return: Dataset transformado
+        Returns
+        -------
+        Dataset
+            Dataset transformado com dimensões reduzidas.
         """
-        # Get matriz V transposta
-        v = self.vt.T
+        if not self.fitted:
+            raise ValueError("O modelo PCA deve ser ajustado antes de chamar _transform.")
 
-        # Get dados transformados
-        X_reduced = np.dot(self.centered_data, v)
-        # return Dataset(X=transformed_data, y=dataset.y, features_names=dataset.features_names, label_names=dataset.label_names)
-        return X_reduced
+        # Centralizar os dados
+        centered_data = dataset.X - self.mean
 
-    def fit_transform(self, dataset: Dataset) -> np.ndarray:
-        """
-        Método que faz o fit e transforma o dataset.
+        # Projetar os dados nos componentes principais
+        reduced_data = np.dot(centered_data, self.components.T)
 
-        :param dataset: Dataset, input dataset
-
-        :return: Dataset
-        """
-        self.fit(dataset)
-        return self.transform(dataset=dataset)
-
-
-if __name__ == "__main__":
-    import pandas as pd
-    dataset_: Dataset = Dataset.from_random(10, 5)
-
-    df = pd.DataFrame(data=np.column_stack((dataset_.X, dataset_.y)), columns=dataset_.features + [dataset_.label])
-
-    print("Dataframe random:\n", dataset_.from_dataframe(df))
-    dataset_pca = PCA(n_components=2)
-    print("Pós PCA:\n", dataset_pca.fit_transform(dataset=dataset_))
+        # Criar um novo dataset com as features reduzidas
+        feature_names = [f"PC{i+1}" for i in range(self.n_components)]
+        return Dataset(X=reduced_data, y=dataset.y, features=feature_names, label=dataset.label)

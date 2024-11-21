@@ -1,114 +1,96 @@
 import numpy as np
-
+from si.base.model import Model
 from si.data.dataset import Dataset
 from si.metrics.rmse import rmse
 from si.statistics.euclidean_distance import euclidean_distance
 
 
-class KNNRegressor:
-    """
-    KNN Regressor
-    The k-Nearst Neighbors regressor is a machine learning model that estimates the mean of the k-nearest samples in
-    the training data, based on a similarity measure (e.g., distance functions).
-
-    Parameters
-    ----------
-    k: int
-        The number of nearest neighbors to use
-    distance: Callable
-        The distance function to use
-
-    Attributes
-    ----------
-    dataset: np.ndarray
-        The training data
-    """
-
-    def __init__(self, k: int, distance: euclidean_distance = euclidean_distance):
+class KNNRegressor(Model):
+    def __init__(self, k: int = 3, distance=euclidean_distance):
         """
-        Construtor da class KNNRegressor.
+        KNN Regressor
 
-        :param k: Número de k exemplos de nearest neighbors a considerar.
-        :param distance: Função que calcula a distância entre a amostra e as amostras do dataset de treino
+        Parameters
+        ----------
+        k : int
+            Number of neighbors to consider.
+        distance : callable
+            Function to compute the distance between two points.
         """
-        # Parâmetros
         self.k = k
         self.distance = distance
+        self.train_data = None
 
-        # Atributos
-        self.dataset = None
-
-    def _fit(self, dataset: Dataset) -> 'KNNRegressor':
+    def _fit(self, dataset):
         """
-        Método para fazer o fit do modelo de acordo com o input dataset.
+        Store the training data.
 
-        :param dataset: Dataset de treino.
-
-        :return: self. O modelo treinado
+        Parameters
+        ----------
+        dataset : Dataset
+            The dataset to fit the model on.
         """
-        self.dataset = dataset
-        return self
+        self.train_data = dataset
 
-    def _get_closet_label_mean(self, x: np.ndarray) -> np.ndarray:
+    def _get_neighbors(self, sample):
         """
-        Método que calcula a média das labels mais próximas de uma dada sample - highest frequency classes.
+        Get the k-nearest neighbors for a given sample.
 
-        :param x: Array de samples.
+        Parameters
+        ----------
+        sample : np.ndarray
+            A single sample (1D array).
 
-        :return: Array com índices das médias das labels.
+        Returns
+        -------
+        np.ndarray
+            The values (y) of the k-nearest neighbors.
         """
-        # Compute distance between the samples and the dataset
-        distances = self.distance(x, self.dataset.X)
+        # Garantir que `sample` é 2D para compatibilidade com euclidean_distance
+        if sample.ndim == 1:
+            sample = sample.reshape(1, -1)
 
-        # Sort the distances and get indexes of nearest neighbors
-        knn = np.argsort(distances)[:self.k]  # get the first k indexes of the sorted distances array
+        # Calcula a distância entre a amostra e todos os pontos do conjunto de treino
+        distances = np.array([self.distance(sample, train_sample.reshape(1, -1)) for train_sample in self.train_data.X])
 
-        # Get the labels of the obtained indexes
-        knn_labels = self.dataset.y[knn]
+        # Encontra os índices dos k vizinhos mais próximos
+        k_indices = np.argsort(distances.flatten())[:self.k]
 
-        # Computes the mean of the matching classes
-        knn_labels_mean = np.mean(knn_labels)
+        # Retorna os valores correspondentes no conjunto de treino
+        return self.train_data.y[k_indices]
 
-        return knn_labels_mean
-
-    def _predict(self, dataset: Dataset) -> np.ndarray:
+    def _predict(self, dataset):
         """
-        Método para prever as médias das labels de um dado dataset.
+        Predict the target values for the given dataset.
 
-        :param dataset: Dataset
+        Parameters
+        ----------
+        dataset : Dataset
+            The dataset for which to make predictions.
 
-        :return: Array com as previsões do modelo.
+        Returns
+        -------
+        np.ndarray
+            Predicted target values.
         """
-        return np.apply_along_axis(self._get_closet_label_mean, axis=1, arr=dataset.X)  # axis=1 por ser nas linhas
+        predictions = np.array([np.mean(self._get_neighbors(sample)) for sample in dataset.X])
+        return predictions
 
     def _score(self, dataset: Dataset) -> float:
         """
-        Método que calcula o score do modelo - o erro entre os valores estimados e reais, usando a fórmula RMSE.
+        Compute the root mean squared error (RMSE) between predictions and true values.
 
-        :param dataset: Dataset
+        Parameters
+        ----------
+        dataset : Dataset
+            The dataset for which to compute the score.
 
-        :return: Valor RMSE do modelo.
+        Returns
+        -------
+        float
+            Root mean squared error (RMSE).
         """
-        predictions = self._predict(dataset)
+        predictions = self._predict(dataset) 
+        return rmse(dataset.y, predictions)  
 
-        return rmse(dataset.y, predictions)
 
-
-if __name__ == '__main__':
-    # import dataset
-    from si.data.dataset import Dataset
-    from si.model_selection.split import train_test_split
-
-    # load and split the dataset
-    dataset_ = Dataset.from_random(600, 100, 2)
-    dataset_train, dataset_test = train_test_split(dataset=dataset_, test_size=0.2)
-
-    # initialize the KNN classifier
-    knn = KNNRegressor(k=3, distance=euclidean_distance)
-
-    # fit the model to the train dataset
-    knn._fit(dataset_train)
-
-    # evaluate the model on the test dataset
-    score = knn._score(dataset_test)
-    print(f'The RMSE value of the model is: {score}')

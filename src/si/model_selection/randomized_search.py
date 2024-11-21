@@ -12,20 +12,17 @@ def randomized_search_cv(model,
                          n_iter: int = 10,
                          test_size: float = 0.3) -> Dict[str, Tuple[str, Union[int, float]]]:
     """
-    Método para otimizar parâmetros usando combinações aleatórias.
-    Avalia apenas um conjunto aleatório de parâmetros retirados de uma distribuição ou conjunto de valores possíveis.
-    É mais eficiente do que o grid search e consegue encontrar melhores valores de hiperparâmetros.
+    Perform a randomized search over hyperparameters and evaluate model performance.
 
-    :param model: Modelo a validar
-    :param dataset: Dataset de validação
-    :param parameter_distribution: Os parrâmetros para a procura. Dicionário com nome do parâmetro e distribuição de
-    valores
-    :param scoring: Função de score
-    :param cv: Número de folds
-    :param n_iter: Número de combinações aleatórias de parâmetros
-    :param test_size: Tamanho do dataset de teste
+    param model: Model to validate
+    param dataset: Validation dataset
+    param parameter_distribution: Dictionary with hyperparameter names and their possible values
+    param scoring: Scoring function
+    param cv: Number of folds
+    param n_iter: Number of random hyperparameter combinations to test
+    param test_size: Test set size
 
-    :return: Lista de dicionários com a combinação dos parâmetros e os scores de treino e teste
+    return: Dictionary with the results of the randomized search cross-validation.
     """
     scores = {'parameters': [], 'seed': [], 'train': [], 'test': []}
 
@@ -63,23 +60,3 @@ def randomized_search_cv(model,
         scores['test'].append(score)
 
     return scores
-
-
-if __name__ == '__main__':
-    # imports
-    from si.io.csv_file import read_csv
-    from sklearn.preprocessing import StandardScaler
-    from si.models.logistic_regression import LogisticRegression
-
-    # read and standardize the dataset
-    breast_bin = read_csv('../../../datasets/breast_bin/breast-bin.csv', sep=',', features=True, label=True)
-    dataset = read_csv(breast_bin, sep=",", label=True)
-    dataset.X = StandardScaler().fit_transform(dataset.X)
-
-    # initialize the randomized search
-    lg_model = LogisticRegression(l2_penalty=1, alpha=0.001, max_iter=1000)
-    lg_model_param = {'l2_penalty': np.linspace(1, 10, 10),
-                      'alpha': np.linspace(0.001, 0.0001, 100),
-                      'max_iter': np.linspace(1000, 2000, 200)}
-    scores = randomized_search_cv(lg_model, dataset, lg_model_param, cv=3)
-    print(f'Scores: ', scores)

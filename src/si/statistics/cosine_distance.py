@@ -12,19 +12,19 @@ def cosine_distance(x, y):
     distances -- a 1D numpy array containing the cosine distances between x and each sample in y
     """
     
-    # Normalize the vector x
+    # Normaliza o vetor x
     norm_x = np.linalg.norm(x)
     
-    # Normalize each row in y
+    # Normaliza cada linha de y
     norm_y = np.linalg.norm(y, axis=1)
     
-    # Compute the dot product between x and each row in y
-    dot_product = np.dot(y, x)
+    # Calcula o produto escalar entre x e cada linha de y
+    dot_product = np.dot(y, x.T)  # Transpõe x para que a multiplicação seja correta
     
-    # Compute the cosine similarities
+    # Calcula a similaridade cosseno
     cosine_similarities = dot_product / (norm_x * norm_y)
     
-    # Compute the cosine distances
+    # Calcula as distâncias cosseno
     distances = 1 - cosine_similarities
     
     return distances

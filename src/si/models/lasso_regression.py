@@ -1,6 +1,6 @@
 import numpy as np
 from si.metrics.mse import mse
-from si.data.dataset import Dataset  # Importar a classe Dataset
+from si.data.dataset import Dataset  
 
 class LassoRegression:
     """
@@ -27,42 +27,47 @@ class LassoRegression:
     std: np.ndarray
         The standard deviation of each feature in the training data. Used for scaling if the `scale` parameter is set to True.
 
-    """
-    def __init__(self, l1_penalty=1.0, scale=True):
-        # Parâmetros do modelo
+        """
+
+
+    def __init__(self, l1_penalty=1.0, scale=True, patience: int = 5):
         self.l1_penalty = l1_penalty
         self.scale = scale
+        self.patience = patience
 
         self.theta = None
         self.theta_zero = 0
         self.mean = None
         self.std = None
+        self.cost_history = []  # Armazena o histórico de custos
 
     def _fit(self, dataset: Dataset, max_iter=1000, tolerance=1e-4):
         X, y = dataset.X, dataset.y
         n, p = X.shape
-        
+
         if self.scale:
             self.mean = np.mean(X, axis=0)
             self.std = np.std(X, axis=0)
             X = (X - self.mean) / self.std
-        
-        # Inicializar os coeficientes
+
         self.theta = np.zeros(p)
         self.theta_zero = 0
+        self.cost_history = []
 
         for _ in range(max_iter):
             theta_old = self.theta.copy()
-            
-            # Atualizar theta para cada feature
+
             for j in range(p):
                 r_j = np.dot(X[:, j], (y - (self.theta_zero + np.dot(X, self.theta) - X[:, j] * self.theta[j])))
                 self.theta[j] = self._soft_threshold(r_j, self.l1_penalty) / np.dot(X[:, j], X[:, j])
 
-            # Atualizar theta_zero
             self.theta_zero = np.mean(y - np.dot(X, self.theta))
-            
-            # Verificar condição de parada
+
+            # Calcula e armazena o custo
+            y_pred = np.dot(X, self.theta) + self.theta_zero
+            cost = mse(y, y_pred)
+            self.cost_history.append(cost)
+
             if np.max(np.abs(self.theta - theta_old)) < tolerance:
                 break
 
@@ -76,11 +81,8 @@ class LassoRegression:
 
     def _predict(self, dataset: Dataset):
         X = dataset.X
-        # Escalar os dados usando média e desvio padrão do fit
         if self.scale:
             X = (X - self.mean) / self.std
-
-        # Prever os valores de y
         return np.dot(X, self.theta) + self.theta_zero
 
     def _score(self, dataset: Dataset):

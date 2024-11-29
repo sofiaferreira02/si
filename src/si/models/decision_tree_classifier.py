@@ -71,6 +71,7 @@ class DecisionTreeClassifier(Model):
         self.tree = None
         self.dataset = None
 
+    
     def _build_tree(self, dataset: Dataset, current_depth: int = 0) -> Node:
         """
         Builds a decision tree recursively.

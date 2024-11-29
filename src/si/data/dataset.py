@@ -197,7 +197,74 @@ class Dataset:
         X = np.random.rand(n_samples, n_features)
         y = np.random.randint(0, n_classes, n_samples)
         return cls(X, y, features=features, label=label)
+    
 
+    def dropna(self):
+        """
+        Removes all samples (rows) containing at least one NaN value from X and updates y accordingly.
+
+        Returns:
+        self: The modified Dataset object with NaN rows removed.
+        """
+        mask = ~np.any(np.isnan(self.X), axis=1)
+
+        # Filter X and y to only include rows that don't have NaNs
+        self.X = self.X[mask] 
+        self.y = self.y[mask]
+
+        return self
+
+    def fillna(self, value='mean'):
+        """
+        Replace NaN values in the dataset with a specified value, or the mean/median of each feature.
+        
+        Parameters
+        ----------
+        value : float or str, optional
+            - If a float, replaces NaNs with this value.
+            - If 'mean', replaces NaNs with the mean of each column (default).
+            - If 'median', replaces NaNs with the median of each column.
+        
+        Returns
+        -------
+        self : Dataset
+            The dataset with NaN values replaced.
+        """
+        if isinstance(value, (float, int)):  # Substituir por um valor numérico específico
+            self.X = np.nan_to_num(self.X, nan=value)
+        elif value == 'mean':  # Substituir pela média de cada coluna
+            col_means = np.nanmean(self.X, axis=0)
+            self.X = np.where(np.isnan(self.X), np.expand_dims(col_means, axis=0), self.X)
+        elif value == 'median':  # Substituir pela mediana de cada coluna
+            col_medians = np.nanmedian(self.X, axis=0)
+            self.X = np.where(np.isnan(self.X), np.expand_dims(col_medians, axis=0), self.X)
+        else:
+            raise ValueError("Invalid value for 'fillna'. Use a float, 'mean', or 'median'.")
+        return self
+
+    def remove_by_index(self, index: int):
+        """
+        Removes the sample (row) at the given index from both the feature matrix X and the label vector y.
+        
+        Parameters
+        ----------
+        index : int
+            Index of the sample to remove.
+        
+        Returns
+        -------
+        self : Dataset
+            The dataset with the specified sample removed.
+        """
+        # Validate index and remove the row from X and y (if y exists)
+        if not (0 <= index < len(self.X)):
+            raise IndexError("Index is out of bounds!")
+        
+        self.X = np.delete(self.X, index, axis=0)
+        if self.y is not None:
+            self.y = np.delete(self.y, index)
+        
+        return self
 
 if __name__ == '__main__':
     X = np.array([[1, 2, 3], [4, 5, 6]])

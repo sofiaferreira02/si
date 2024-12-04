@@ -1,4 +1,3 @@
-import os
 from unittest import TestCase
 from datasets import DATASETS_PATH
 

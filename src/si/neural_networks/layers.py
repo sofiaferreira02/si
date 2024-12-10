@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 import copy
-
+from si.neural_networks.optimizers import Optimizer
 import numpy as np
 
 
@@ -139,3 +139,92 @@ class DenseLayer(Layer):
             The shape of the output of the layer.
         """
         return (self.n_units,) 
+
+
+class Dropout(Layer):
+    """
+    Dropout layer for neural networks.
+    """
+
+    def __init__(self, probability: float):
+        """
+        Initialize the dropout layer.
+
+        Parameters
+        ----------
+        probability: float
+            The dropout rate, between 0 and 1.
+        """
+        super().__init__()
+        self.probability = probability
+        self.mask = None
+        self.input = None
+        self.output = None
+
+    def forward_propagation(self, input: np.ndarray, training: bool) -> np.ndarray:
+        """
+        Perform forward propagation on the given input.
+
+        Parameters
+        ----------
+        input: numpy.ndarray
+            The input to the layer.
+        training: bool
+            Whether the layer is in training mode or inference mode.
+
+        Returns
+        -------
+        numpy.ndarray
+            The output of the layer.
+        """
+        self.input = input
+        if training:
+            # Compute scaling factor
+            scaling_factor = 1 / (1 - self.probability)
+            # Generate the mask
+            self.mask = np.random.binomial(1, 1 - self.probability, size=input.shape)
+            # Apply the mask and scale the output
+            self.output = input * self.mask * scaling_factor
+        else:
+            # During inference, the input is not changed
+            self.output = input
+        return self.output
+
+    def backward_propagation(self, output_error: np.ndarray) -> np.ndarray:
+        """
+        Perform backward propagation on the given output error.
+
+        Parameters
+        ----------
+        output_error: numpy.ndarray
+            The output error of the layer.
+
+        Returns
+        -------
+        numpy.ndarray
+            The input error of the layer.
+        """
+        # Multiply the output error by the mask
+        return output_error * self.mask
+
+    def output_shape(self) -> tuple:
+        """
+        Returns the shape of the output of the layer.
+
+        Returns
+        -------
+        tuple
+            The input shape (dropout does not change the shape of the data).
+        """
+        return self.input_shape()
+
+    def parameters(self) -> int:
+        """
+        Returns the number of parameters of the layer.
+
+        Returns
+        -------
+        int
+            Always returns 0 (dropout layers do not have learnable parameters).
+        """
+        return 0

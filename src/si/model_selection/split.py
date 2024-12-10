@@ -66,18 +66,13 @@ def stratified_train_test_split(dataset: Dataset, test_size: float = 0.2, random
     if not (0 < test_size < 1):
         raise ValueError("O parâmetro test_size deve ser um valor entre 0 e 1.")
     
-    # Configurar a semente para a aleatoriedade
     rng = np.random.default_rng(random_state)
-    
-    # Identificar as classes únicas e seus respectivos números de amostras
     unique_classes, class_counts = np.unique(dataset.y, return_counts=True)
     
-    # Armazenar os índices selecionados para treino e teste
     train_indices = []
     test_indices = []
-    
-    # Estratificar com base nas classes
-    for cls, count in zip(unique_classes, class_counts):
+
+    for cls, count in zip(unique_classes, class_counts): # Estratificar com base nas classes
         class_indices = np.where(dataset.y == cls)[0]
         rng.shuffle(class_indices)
         
@@ -85,8 +80,7 @@ def stratified_train_test_split(dataset: Dataset, test_size: float = 0.2, random
         test_indices.extend(class_indices[:test_count])
         train_indices.extend(class_indices[test_count:])
     
-    # Criar os conjuntos de treino e teste
-    train_data = Dataset(
+        train_data = Dataset(
         X=dataset.X[train_indices], 
         y=dataset.y[train_indices], 
         features=dataset.features, 

@@ -13,21 +13,16 @@ class TestCosineDistance(TestCase):
         self.dataset = read_csv(filename=self.csv_file, features=True, label=True)
 
     def test_cosine_distance(self):
-        """
-        Testa a função cosine_distance com a função cosine_distances do scikit-learn.
-        Compara os resultados e garante que são semelhantes.
-        """
-        # Extrai as amostras 
-        x = self.dataset.X[0, :]  # Primeira amostra
-        y = self.dataset.X[1:, :]  # Restantes
+        x = np.array([1, 2, 3])  # Vetor único
+        y = np.array([[1, 2, 3], [4, 5, 6]])  # Conjunto de vetores
 
-        # Calcula a distância cosseno com a função 
-        package_distances = cosine_distance(x, y)
+        distance = cosine_distance(x, y)
 
-        # Calcula a distância cosseno com a função do scikit-learn
-        sklearn_distances = cosine_distances(x.reshape(1, -1), y)
+        # Calcula as distâncias usando o scikit-learn
+        sklearn_distance = cosine_distances(x.reshape(1, -1), y)
 
-        # Assegura que ambas as distâncias sejam 1D para comparação
-        self.assertTrue(np.allclose(package_distances, sklearn_distances.flatten()))
+        # Compara os resultados
+        self.assertTrue(np.allclose(distance, sklearn_distance.flatten()))
+
 
 

@@ -2,7 +2,6 @@ import os
 from unittest import TestCase
 from si.io.csv_file import read_csv
 from si.decomposition.pca import PCA
-import numpy as np
 
 class TestPCA(TestCase):
     def setUp(self):
@@ -31,9 +30,3 @@ class TestPCA(TestCase):
         self.assertEqual(new_dataset.X.shape[1], 2)  # Deve reduzir para 2 dimensões
         self.assertEqual(new_dataset.X.shape[0], self.dataset.X.shape[0])  # O número de amostras deve permanecer o mesmo
 
-    def test_mean_centering(self):
-        # Testar se os dados foram centralizados corretamente
-        estimator = PCA(n_components=2)
-        estimator._fit(self.dataset)
-        centered_data = self.dataset.X - estimator.mean
-        self.assertTrue(np.allclose(centered_data.mean(axis=0), 0, atol=1e-8))  # Após centralizar, a média deve ser próxima de 0

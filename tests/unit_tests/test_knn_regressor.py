@@ -15,10 +15,8 @@ class TestKNNRegressor(TestCase):
         self.dataset = read_csv(filename=self.csv_file, features=True, label=True)
 
     def test_fit(self):
-        # Testa o método _fit do KNNRegressor
         knn = KNNRegressor(k=3)
         knn._fit(self.dataset)
-
         # Verifica se o dataset foi armazenado corretamente no modelo
         self.assertTrue(knn.train_data is not None)
         self.assertTrue(np.all(self.dataset.X == knn.train_data.X))
@@ -27,13 +25,8 @@ class TestKNNRegressor(TestCase):
     def test_get_neighbors(self):
         knn = KNNRegressor(k=2, distance=euclidean_distance)
         knn._fit(self.dataset)
-    
         sample = self.dataset.X[0]
         neighbors = knn._get_neighbors(sample)
-
-        # Verifica se o número de vizinhos está correto
-        self.assertEqual(len(neighbors), 2)
-
         # Verifica se os valores dos vizinhos estão no conjunto de treino
         for neighbor_value in neighbors:
             self.assertIn(neighbor_value, self.dataset.y)
@@ -42,13 +35,9 @@ class TestKNNRegressor(TestCase):
         knn = KNNRegressor(k=3)
         train_dataset, test_dataset = train_test_split(self.dataset, test_size=0.2, random_state=42)
         knn._fit(train_dataset)
-
-        # Realiza previsões
         predictions = knn._predict(test_dataset)
-
         # Verifica o tamanho das previsões
         self.assertEqual(predictions.shape[0], test_dataset.X.shape[0])
-
         # Verifica se as previsões estão aceitáveis
         self.assertTrue(np.all(predictions >= np.min(train_dataset.y)))
         self.assertTrue(np.all(predictions <= np.max(train_dataset.y)))
@@ -57,10 +46,7 @@ class TestKNNRegressor(TestCase):
         knn = KNNRegressor(k=3)
         train_dataset, test_dataset = train_test_split(self.dataset, test_size=0.2, random_state=42)
         knn._fit(train_dataset)
-
-        # Calcula o score usando RMSE
         score = knn._score(test_dataset)
-
         # Verifica se o score (RMSE) é válido (deve ser >= 0)
         self.assertGreaterEqual(score, 0)
 

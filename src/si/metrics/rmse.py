@@ -19,3 +19,4 @@ def rmse(y_true, y_pred):
     rmse_value = np.sqrt(np.mean((y_true - y_pred) ** 2))
 
     return rmse_value
+

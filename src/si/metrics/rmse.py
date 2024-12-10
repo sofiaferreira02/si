@@ -12,7 +12,6 @@ def rmse(y_true, y_pred):
     Returns:
     - float: RMSE, the square root of the mean of squared differences between y_true and y_pred.
     """
-    # Ensure that the inputs are NumPy arrays
     y_true = np.array(y_true)
     y_pred = np.array(y_pred)
 

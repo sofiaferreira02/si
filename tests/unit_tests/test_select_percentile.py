@@ -28,3 +28,4 @@ class TestSelectPercentile(unittest.TestCase):
         self.assertLess(len(transformed_dataset.features), len(self.dataset.features))
         self.assertLess(transformed_dataset.X.shape[1], self.dataset.X.shape[1])
         self.assertEqual(len(transformed_dataset.features),2)
+        

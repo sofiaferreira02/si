@@ -1,62 +1,79 @@
-from typing import Dict, Tuple, Callable, Union
+from typing import Dict, Tuple, Callable
 import numpy as np
 from si.data.dataset import Dataset
+from si.base.model import Model
+from itertools import product
 from si.model_selection.cross_validate import k_fold_cross_validation
 
 
-def randomized_search_cv(model,
+def randomized_search_cv(model: Model, 
                          dataset: Dataset,
-                         parameter_distribution: Dict[str, Tuple],
+                         hyperparameter_grid: Dict[str, Tuple],
                          scoring: Callable = None,
-                         cv: int = 3,
-                         n_iter: int = 10,
-                         test_size: float = 0.3) -> Dict[str, Tuple[str, Union[int, float]]]:
+                         cv: int = 5,
+                         n_iter: int = 10) -> Dict:
     """
     Perform a randomized search over hyperparameters and evaluate model performance.
 
     param model: Model to validate
     param dataset: Validation dataset
-    param parameter_distribution: Dictionary with hyperparameter names and their possible values
+    param hyperparameter_grid: Dictionary with hyperparameter names and their possible values
     param scoring: Scoring function
     param cv: Number of folds
     param n_iter: Number of random hyperparameter combinations to test
-    param test_size: Test set size
 
     return: Dictionary with the results of the randomized search cross-validation.
     """
-    scores = {'parameters': [], 'seed': [], 'train': [], 'test': []}
+    results = {
+        'hyperparameters': [],
+        'scores': [],
+        'best_hyperparameters': None,
+        'best_score': -np.inf
+    }
 
-    # checks if parameters exist in the model
-    for parameter in parameter_distribution:
-        if not hasattr(model, parameter):
-            raise AttributeError(f"The {model} does not have parameter {parameter}.")
+    # Validate hyperparameters
+    for param in hyperparameter_grid:
+        if not hasattr(model, param):
+            raise AttributeError(f"Model {model} does not have a parameter '{param}'.")
 
-    # sets n_iter parameter combinations
-    for i in range(n_iter):
+    # Generate all possible combinations
+    all_combinations = list(product(*hyperparameter_grid.values()))
 
-        # set the random seed
-        random_state = np.random.randint(0, 1000)
+    # Ensure n_iter does not exceed total combinations
+    if n_iter > len(all_combinations):
+        raise ValueError(f"n_iter cannot exceed the total number of combinations ({len(all_combinations)}).")
 
-        # store the seed
-        scores['seed'].append(random_state)
+    # Randomly sample n_iter combinations
+    sampled_combinations = [all_combinations[i] for i in np.random.choice(len(all_combinations), size=n_iter, replace=False)]
 
-        # dictionary for the parameter configuration
-        parameters = {}
+    # Initialize results dictionary
+    results = {
+        'hyperparameters': [],
+        'scores': [],
+        'best_hyperparameters': None,
+        'best_score': -np.inf
+    }
 
-        # select the parameters and its value
-        for parameter, value in parameter_distribution.items():
-            parameters[parameter] = np.random.choice(value)
+    # Iterate through sampled combinations
+    for combination in sampled_combinations:
+        # Map combination to hyperparameter names
+        param_dict = {key: value for key, value in zip(hyperparameter_grid.keys(), combination)}
 
-        # set the parameters to the model
-        for parameter, value in parameters.items():
-            setattr(model, parameter, value)
+        # Set model parameters
+        for param, value in param_dict.items():
+            setattr(model, param, value)
 
-        # get scores from cross_validation
-        score = k_fold_cross_validation(model=model, dataset=dataset, scoring=scoring, cv=cv)
+        # Perform cross-validation
+        cv_scores = k_fold_cross_validation(model=model, dataset=dataset, scoring=scoring, cv=cv)
+        mean_score = np.mean(cv_scores)
 
-        # stores the parameter combination and the obtained score to the dictionary
-        scores['parameters'].append(parameters)
-        scores['train'].append(score)
-        scores['test'].append(score)
+        # Update results
+        results['hyperparameters'].append(param_dict)
+        results['scores'].append(mean_score)
 
-    return scores
+        # Update best score and parameters if applicable
+        if mean_score > results['best_score']:
+            results['best_score'] = mean_score
+            results['best_hyperparameters'] = param_dict
+
+    return results

@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def rmse(y_true, y_pred):
+def rmse(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     """
     Calculate the Root Mean Squared Error (RMSE) between true and predicted values.
 
@@ -12,10 +12,5 @@ def rmse(y_true, y_pred):
     Returns:
     - float: RMSE, the square root of the mean of squared differences between y_true and y_pred.
     """
-    y_true = np.array(y_true)
-    y_pred = np.array(y_pred)
-
-    rmse_value = np.sqrt(np.mean((y_true - y_pred) ** 2))
-
-    return rmse_value
+    return np.sqrt(np.sum((y_true - y_pred) ** 2) / len(y_true))
 

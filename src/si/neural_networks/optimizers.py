@@ -1,6 +1,7 @@
 from abc import abstractmethod
 import numpy as np
 
+
 class Optimizer:
 
     def __init__(self, learning_rate: float):
@@ -24,8 +25,6 @@ class Optimizer:
             The updated weights of the layer.
         """
         raise NotImplementedError
-    
-
 
 
 class SGD(Optimizer):
@@ -61,18 +60,15 @@ class SGD(Optimizer):
         numpy.ndarray
             The updated weights of the layer.
         """
-        if self.retained_gradient == None:
-            self.retained_gradient = np.zeros(w.shape)
-
+        if self.retained_gradient is None:
+            self.retained_gradient = np.zeros(np.shape(w))
         self.retained_gradient = self.momentum * self.retained_gradient + (1 - self.momentum) * grad_loss_w
-
-        new_weights = w - self.learning_rate * self.retained_gradient
-        return new_weights
+        return w - self.learning_rate * self.retained_gradient
 
 
 
 class Adam(Optimizer):
-    def __init__(self, learning_rate: float, beta_1: float = 0.9, beta_2: float = 0.999, epsilon: float = 1e-8):
+    def __init__(self, learning_rate: float = 0.01, beta_1: float = 0.9, beta_2: float = 0.999, epsilon: float = 1e-8):
         """
         Initialize the Adam optimizer.
 
@@ -91,6 +87,7 @@ class Adam(Optimizer):
         self.beta_1 = beta_1
         self.beta_2 = beta_2
         self.epsilon = epsilon
+        
         self.m = None
         self.v = None
         self.t = 0

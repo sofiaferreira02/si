@@ -1,7 +1,9 @@
 from abc import ABCMeta, abstractmethod
 import copy
-from si.neural_networks.optimizers import Optimizer
+
 import numpy as np
+
+from si.neural_networks.optimizers import Optimizer
 
 
 class Layer(metaclass=ABCMeta):
@@ -96,17 +98,16 @@ class DenseLayer(Layer):
         self.output = np.dot(self.input, self.weights) + self.biases
         return self.output
     
+
     def backward_propagation(self, output_error: np.ndarray) -> float:
         """
         Perform backward propagation on the given output error.
         Computes the dE/dW, dE/dB for a given output_error=dE/dY.
         Returns input_error=dE/dX to feed the previous layer.
-
         Parameters
         ----------
         output_error: numpy.ndarray
             The output error of the layer.
-
         Returns
         -------
         float
@@ -128,17 +129,16 @@ class DenseLayer(Layer):
         self.weights = self.w_opt.update(self.weights, weights_error)
         self.biases = self.b_opt.update(self.biases, bias_error)
         return input_error
-    
+
     def output_shape(self) -> tuple:
         """
         Returns the shape of the output of the layer.
-
         Returns
         -------
         tuple
             The shape of the output of the layer.
         """
-        return (self.n_units,) 
+        return (self.n_units,)
 
 
 class Dropout(Layer):
@@ -157,6 +157,7 @@ class Dropout(Layer):
         """
         super().__init__()
         self.probability = probability
+        
         self.mask = None
         self.input = None
         self.output = None

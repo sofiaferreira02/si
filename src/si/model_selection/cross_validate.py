@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List
+from typing import List
 
 import numpy as np
 
@@ -51,8 +51,8 @@ def k_fold_cross_validation(model, dataset: Dataset, scoring: callable = None, c
         dataset_test = Dataset(dataset.X[test_indices], dataset.y[test_indices])
 
         # Fit the model on the training set and score it on the test set
-        model.fit(dataset_train)
-        fold_score = scoring(dataset_test.y, model.predict(dataset_test)) if scoring is not None else model.score(
+        model._fit(dataset_train)
+        fold_score = scoring(dataset_test.y, model._predict(dataset_test)) if scoring is not None else model.score(
             dataset_test)
         scores.append(fold_score)
 

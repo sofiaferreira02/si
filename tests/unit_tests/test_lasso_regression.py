@@ -33,3 +33,4 @@ class TestLassoRegressor(TestCase):
         mse_ = ridge._score(self.test_dataset)
 
         self.assertEqual(round(mse_, 2), 5777.56)
+        

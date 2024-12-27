@@ -182,7 +182,7 @@ class TanhActivation(ActivationLayer):
     TanhActivation function.
     """
 
-    def activation_function(self, input: np.ndarray):
+    def activation_function(self, input: np.ndarray)->np.ndarray:
         """
         TanhActivation function.
 
@@ -196,7 +196,7 @@ class TanhActivation(ActivationLayer):
         numpy.ndarray
             The output of the layer.
         """
-        return np.tanh(input)
+        return (np.exp(input) - np.exp(-input)) / (np.exp(input) + np.exp(-input))
     
     def derivative(self, input: np.ndarray):
         """
@@ -212,15 +212,14 @@ class TanhActivation(ActivationLayer):
         numpy.ndarray
             The derivative of the activation function.
         """
-        tanh_x = np.tanh(input)
-        return 1 - tanh_x ** 2
+        return 1 - self.activation_function(input) ** 2
 
 
 class SoftmaxActivation(ActivationLayer):
     """
     Softmaxactivation function.
     """
-    def activation_function(self, input: np.ndarray):
+    def activation_function(self, input: np.ndarray)->np.ndarray:
         """
         SoftmaxActivation function.
 
@@ -234,10 +233,10 @@ class SoftmaxActivation(ActivationLayer):
         numpy.ndarray
             The output of the layer.
         """
-        exp_x = np.exp(input - np.max(input, axis=-1, keepdims=True))
-        return exp_x / np.sum(exp_x, axis=-1, keepdims=True)
+        exp_x = np.exp(input - np.max(input, axis=1, keepdims=True))
+        return exp_x / np.sum(exp_x, axis=1, keepdims=True)
 
-    def derivative(self, input: np.ndarray):
+    def derivative(self, input: np.ndarray)->np.ndarray:
         """
         Derivative of the SoftmaxActivation function.
 
@@ -251,5 +250,4 @@ class SoftmaxActivation(ActivationLayer):
         numpy.ndarray
             The derivative of the activation function.
         """
-        softmax_x = self.activation_function(input)
-        return softmax_x * (1.0 - softmax_x)
+        return self.activation_function(input) * (1 - self.activation_function(input))

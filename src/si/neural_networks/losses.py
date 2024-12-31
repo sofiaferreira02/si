@@ -176,3 +176,5 @@ class CategoricalCrossEntropy(LossFunction):
         # Avoid division by zero and log(0)
         y_pred_clipped = np.clip(y_pred, 1e-15, 1 - 1e-15)
         return -y_true / y_pred_clipped
+    
+    

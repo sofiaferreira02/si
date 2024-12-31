@@ -28,10 +28,12 @@ class TestOptimizers(TestCase):
 
 
     def testAdam(self):
-    # Inicializar o otimizador Adam com um learning_rate
+    
         adam = Adam(learning_rate=0.001)
         new_w = adam.update(self.w, self.grad_loss_w)
 
         self.assertEqual(new_w.shape, self.w.shape)
         self.assertIsNotNone(new_w)
         self.assertTrue(np.all(new_w != self.w))
+
+        

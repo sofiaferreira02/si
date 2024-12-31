@@ -131,3 +131,4 @@ class Adam(Optimizer):
 
         # Compute the moving averages and return the updated weights
         return w - self.learning_rate * m_hat / (np.sqrt(v_hat) + self.epsilon)
+    
